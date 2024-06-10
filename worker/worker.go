@@ -96,3 +96,10 @@ func (q *MessageQueue) Pop() m3u8d.StartDownload_Req {
 func (q *MessageQueue) Len() int {
 	return len(q.queue)
 }
+
+type WorkInfo struct {
+	Id       int32  `json:"id"`
+	Url      string `json:"url"`
+	FileName string `json:"file_name"`
+	State    string `json:"state"`
+}
