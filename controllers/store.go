@@ -17,7 +17,7 @@ func StoreURL(c *gin.Context) {
 	save_dir := c.PostForm("save_dir")
 	file_name := c.PostForm("file_name")
 	if len(save_dir) == 0 || len(file_name) == 0 {
-		save_dir = "/data/m3u8"
+		save_dir = "/data1/media/av"
 	}
 	if len(file_name) == 0 || len(file_name) == 0 {
 		fileName, err := extractFilenameFromURL(url)
@@ -73,5 +73,8 @@ func extractFilenameFromURL(urlStr string) (string, error) {
 	}
 	// 使用path/filepath包来获取路径的最后一个元素，这将是文件名
 	filename := filepath.Base(parsedURL.Path)
+	if len(filename) > 5 {
+		filename = filename[:len(filename)-5]
+	}
 	return filename, nil
 }
