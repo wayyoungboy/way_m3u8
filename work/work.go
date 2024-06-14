@@ -178,7 +178,7 @@ func Working() {
 		if err != nil {
 			os.MkdirAll(readywork.SaveDir, os.ModePerm)
 		}
-		domain, err := ExtractDomain(readywork.SaveDir)
+		domain, err := ExtractDomain(readywork.Url)
 
 		if err != nil {
 			log.Warn("域名解析错误： ", err)
