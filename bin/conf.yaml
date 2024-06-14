@@ -1,0 +1,8 @@
+init:
+  maxFLVNu: "6"
+  port: 2045
+  name: "default"
+log:
+  path: "./log"
+  level: "debug"
+  log_Nu: 10
