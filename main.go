@@ -42,6 +42,5 @@ func run() {
 	tc := task.TaskController{}
 	r.Static("/static", "./static")
 	r.POST("/addTask", tc.AddTask)
-	r.Run(":" + string(rune(conf.ConfMap["Init.Port"].(int)))) // 监听2045端口
-
+	r.Run(":" + fmt.Sprint(conf.ConfMap["Init.Port"])) // 监听2045端口
 }
