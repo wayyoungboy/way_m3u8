@@ -2,6 +2,7 @@ package task
 
 import (
 	"github.com/gin-gonic/gin"
+	"gom3u8/conf"
 	"gom3u8/work"
 )
 
@@ -13,7 +14,7 @@ func (TaskController) AddTask(c *gin.Context) {
 	save_dir := c.PostForm("save_dir")
 	file_name := c.PostForm("file_name")
 	if len(save_dir) == 0 || len(file_name) == 0 {
-		save_dir = "/data1/media/av"
+		save_dir = conf.ConfMap["save_dir"].(string)
 	}
 	w := &work.Work{}
 	err := w.Save(url, file_name, save_dir)

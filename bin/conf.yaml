@@ -1,7 +1,7 @@
 init:
-  maxFLVNu: "6"
   port: 2045
   name: "default"
+  save_dir: "/data/m3u8"
 log:
   path: "./log"
   level: "debug"

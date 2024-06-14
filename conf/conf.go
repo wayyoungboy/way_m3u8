@@ -10,7 +10,8 @@ import (
 
 type Config struct {
 	Init struct {
-		Port int `yaml:"port"`
+		Port     int    `yaml:"port"`
+		SavePath string `yaml:"save_dir"`
 	} `yaml:"init"`
 	Log struct {
 		Path   string `yaml:"path"`
@@ -38,6 +39,7 @@ func ConfInit() {
 	ConfMap = make(map[string]interface{})
 	ConfMap["Init.Port"] = config.Init.Port
 	ConfMap["log_Nu"] = config.Log.Log_nu
+	ConfMap["save_dir"] = config.Init.SavePath
 	// 打印配置项的值
 	confjson, _ := json.Marshal(ConfMap)
 	fmt.Println("conf:", string(confjson))
