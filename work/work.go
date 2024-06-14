@@ -5,7 +5,6 @@ import (
 	"errors"
 	"github.com/orestonce/m3u8d"
 	"github.com/orestonce/m3u8d/m3u8dcpp"
-	"github.com/sirupsen/logrus"
 	log "github.com/sirupsen/logrus"
 	"gom3u8/data"
 	"net/url"
@@ -77,7 +76,6 @@ func (work *Work) GetNotWorkingWork() *Work {
 	db = db.First(workInfo, "state = 1")
 
 	if db.Error != nil {
-		logrus.Error(db.Error)
 		return nil
 	}
 	return workInfo
@@ -168,12 +166,13 @@ func Working() {
 	for {
 		w := &Work{}
 		readywork := w.GetNotWorkingWork()
-		log.Info("readywork:", readywork)
+
 		//没有任务的时候停五秒再重复
 		if readywork == nil {
 			time.Sleep(5 * time.Second)
 			continue
 		}
+		log.Info("readywork:", readywork)
 		_, err := os.Stat(readywork.SaveDir)
 		if err != nil {
 			os.MkdirAll(readywork.SaveDir, os.ModePerm)
