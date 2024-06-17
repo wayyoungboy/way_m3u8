@@ -14,6 +14,13 @@ import (
 	"time"
 )
 
+const (
+	StateAll   = 0
+	StateReady = 1
+	StateEnd   = 2
+	StateError = 3
+)
+
 type Work struct {
 	ID         int       `json:"ID"`
 	Name       string    `json:"name"`
@@ -67,23 +74,27 @@ func (work *Work) Save(url string, fileName string, save_dir string) (err error)
 }
 
 func (work *Work) GetNotWorkingWork() *Work {
-	workInfo := &Work{
-		State: 1,
-	}
+
+	workInfoList := []Work{}
 	db := data.DataDB
 	db.Error = nil
 	db.Model(work)
-	db = db.First(workInfo, "state = 1")
-
-	if db.Error != nil {
-		return nil
+	db = db.Where("state = ?", StateReady).Find(&workInfoList)
+	if db.RowsAffected > 0 {
+		return &workInfoList[0]
 	}
-	return workInfo
+	return nil
+}
+func (work *Work) List(Limit, Offset int) *[]Work {
+	db := data.DataDB
+	db.Error = nil
+	db.Model(work)
+	return nil
 }
 func (work *Work) End() error {
 	db := data.DataDB
 	db.Model(work)
-	work.State = 2
+	work.State = StateEnd
 	db.Save(work)
 	return nil
 }
@@ -91,7 +102,7 @@ func (work *Work) Error(err_msg string) error {
 	log.Warn(work.ID, " download err:", err_msg)
 	db := data.DataDB
 	db.Model(work)
-	work.State = 3
+	work.State = StateError
 	work.Info = err_msg
 	db.Save(work)
 	return nil
