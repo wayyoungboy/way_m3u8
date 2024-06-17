@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"gopkg.in/yaml.v3"
-	"io/ioutil"
 	"log"
+	"os"
 )
 
 type Config struct {
@@ -24,7 +24,7 @@ var ConfMap map[string]interface{}
 
 func ConfInit() {
 	// 读取YAML配置文件内容
-	yamlFile, err := ioutil.ReadFile("conf.yaml")
+	yamlFile, err := os.ReadFile("./conf.yaml")
 	if err != nil {
 		log.Fatalf("无法读取YAML文件：%v", err)
 		return
