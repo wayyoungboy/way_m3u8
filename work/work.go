@@ -187,11 +187,10 @@ func Working() {
 		for {
 			for _, worker := range workList {
 				if worker.State {
-				reselect:
 					readywork := w.GetNotWorkingWork(startId)
 					if readywork == nil {
 						time.Sleep(5 * time.Second)
-						continue reselect
+						continue
 					}
 					startId = readywork.ID
 					worker.State = false
