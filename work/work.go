@@ -6,6 +6,7 @@ import (
 	"github.com/orestonce/m3u8d"
 	"github.com/orestonce/m3u8d/m3u8dcpp"
 	log "github.com/sirupsen/logrus"
+	"gom3u8/conf"
 	"gom3u8/data"
 	"net/url"
 	"os"
@@ -73,13 +74,13 @@ func (work *Work) Save(url string, fileName string, save_dir string) (err error)
 	return
 }
 
-func (work *Work) GetNotWorkingWork() *Work {
+func (work *Work) GetNotWorkingWork(startId int) *Work {
 
 	workInfoList := []Work{}
 	db := data.DataDB
 	db.Error = nil
 	db.Model(work)
-	db = db.Where("state = ?", StateReady).Find(&workInfoList)
+	db = db.Where("state = ?", StateReady).Order("id").Where("id>?", startId).Find(&workInfoList)
 	if db.RowsAffected > 0 {
 		return &workInfoList[0]
 	}
@@ -174,72 +175,106 @@ func ExtractDomain(rawURL string) (string, error) {
 }
 
 func Working() {
+	workListMaxNu := conf.ConfMap["work_max"].(int)
+	workList := []Worker{}
+	for i := 0; i < workListMaxNu; i++ {
+		workList = append(workList, NewWorker())
+	}
 	for {
 		w := &Work{}
-		readywork := w.GetNotWorkingWork()
-
-		//没有任务的时候停五秒再重复
-		if readywork == nil {
-			time.Sleep(5 * time.Second)
-			continue
-		}
-		log.Info("readywork:", readywork)
-		_, err := os.Stat(readywork.SaveDir)
-		if err != nil {
-			os.MkdirAll(readywork.SaveDir, os.ModePerm)
-		}
-		domain, err := ExtractDomain(readywork.Url)
-
-		if err != nil {
-			log.Warn("域名解析错误： ", err)
-			continue
-		}
-
-		header_filename := "header.json"
-		headers_list := []URLData{}
-
-		header_data, err := os.ReadFile(header_filename)
-		if err != nil {
-			log.Error("Error reading header jspn file:", err)
-			return
-		}
-		err = json.Unmarshal(header_data, &headers_list)
-		if err != nil {
-			log.Error("Error parsing JSON:", err)
-			continue
-		}
-		header := make(map[string][]string)
-		for _, headers_data := range headers_list {
-			if headers_data.URL == domain {
-				header = headers_data.Header
+		//过滤已处理的任务
+		startId := 0
+		for {
+			for _, worker := range workList {
+				if worker.State {
+				reselect:
+					readywork := w.GetNotWorkingWork(startId)
+					if readywork == nil {
+						time.Sleep(5 * time.Second)
+						continue reselect
+					}
+					startId = readywork.ID
+					worker.State = false
+					go worker.Start(readywork)
+				}
 			}
+			time.Sleep(1 * time.Second)
 		}
-		req := m3u8d.StartDownload_Req{
-			M3u8Url:                  readywork.Url,
-			Insecure:                 true,
-			SaveDir:                  readywork.SaveDir,
-			FileName:                 readywork.Name,
-			SkipTsExpr:               "",
-			SetProxy:                 "",
-			HeaderMap:                header,
-			SkipRemoveTs:             false,
-			ProgressBarShow:          false,
-			ThreadCount:              8,
-			SkipCacheCheck:           false,
-			SkipMergeTs:              false,
-			Skip_EXT_X_DISCONTINUITY: false,
-			DebugLog:                 false,
-		}
-		err = DownloadFromCmd(req)
-
-		if err != nil {
-
-			readywork.Error(err.Error())
-			continue
-		}
-
-		readywork.End()
 	}
+}
+
+type Worker struct {
+	State bool
+}
+
+func NewWorker() Worker {
+	return Worker{
+		State: true,
+	}
+}
+func (w Worker) Start(readywork *Work) {
+	workOnece(readywork)
+	w.State = true
+}
+
+func workOnece(readywork *Work) {
+	log.Info("readywork:", readywork)
+	_, err := os.Stat(readywork.SaveDir)
+	if err != nil {
+		os.MkdirAll(readywork.SaveDir, os.ModePerm)
+	}
+	domain, err := ExtractDomain(readywork.Url)
+
+	if err != nil {
+		log.Warn("域名解析错误： ", err)
+		return
+	}
+
+	header_filename := "header.json"
+	headers_list := []URLData{}
+
+	header_data, err := os.ReadFile(header_filename)
+	if err != nil {
+		readywork.Error("Error reading header jspn file:" + err.Error())
+		return
+	}
+	err = json.Unmarshal(header_data, &headers_list)
+	if err != nil {
+		log.Error("Error parsing JSON:", err)
+		readywork.Error("Error parsing JSON:" + err.Error())
+		return
+	}
+	header := make(map[string][]string)
+	for _, headers_data := range headers_list {
+		if headers_data.URL == domain {
+			header = headers_data.Header
+		}
+	}
+	req := m3u8d.StartDownload_Req{
+		M3u8Url:                  readywork.Url,
+		Insecure:                 true,
+		SaveDir:                  readywork.SaveDir,
+		FileName:                 readywork.Name,
+		SkipTsExpr:               "",
+		SetProxy:                 "",
+		HeaderMap:                header,
+		SkipRemoveTs:             false,
+		ProgressBarShow:          false,
+		ThreadCount:              8,
+		SkipCacheCheck:           false,
+		SkipMergeTs:              false,
+		Skip_EXT_X_DISCONTINUITY: false,
+		DebugLog:                 false,
+	}
+	err = DownloadFromCmd(req)
+
+	if err != nil {
+
+		readywork.Error(err.Error())
+		return
+	}
+
+	readywork.End()
 
 }
 

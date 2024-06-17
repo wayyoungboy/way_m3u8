@@ -2,7 +2,8 @@ init:
   port: 2045
   name: "default"
   save_dir: "../../m3u8"
+  work_max: 8
 log:
   path: "./log"
   level: "debug"
-  log_Nu: 10
+  logNu: "10"

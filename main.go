@@ -42,5 +42,8 @@ func run() {
 	tc := task.TaskController{}
 	r.Static("/static", "./static")
 	r.POST("/addTask", tc.AddTask)
+	r.GET("/health", func(c *gin.Context) {
+		c.JSON(200, gin.H{})
+	})
 	r.Run(":" + fmt.Sprint(conf.ConfMap["Init.Port"])) // 监听2045端口
 }
