@@ -3,11 +3,13 @@ package work
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/orestonce/m3u8d"
 	"github.com/orestonce/m3u8d/m3u8dcpp"
 	log "github.com/sirupsen/logrus"
 	"gom3u8/conf"
 	"gom3u8/data"
+	"gorm.io/gorm"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -48,9 +50,6 @@ func (work *Work) Save(url string, fileName string, save_dir string) (err error)
 			return err
 		}
 	}
-	if save_dir == "" {
-		save_dir = "/data/m3u8/"
-	}
 	log.Info("url:", url)
 	log.Info("fileName:", fileName)
 	log.Info("save_dir:", save_dir)
@@ -63,13 +62,26 @@ func (work *Work) Save(url string, fileName string, save_dir string) (err error)
 		CreateTime: time.Now(),
 		UpdateTime: time.Now(),
 	}
-	db = db.Model(workInfo)
-	db = db.Where("url=?", url).FirstOrCreate(&workInfo)
+	err = db.Where("url=?", url).First(&workInfo).Error
+	if err != nil {
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
+			return err
+		}
 
-	if db.Error != nil {
-		log.Error("save err", db.Error)
-		return db.Error
 	}
+	if workInfo.ID != 0 {
+		id := fmt.Sprint(workInfo.ID)
+		log.Warn("work already exists: " + id)
+		return errors.New("work already exists: " + id)
+	}
+
+	db = db.Model(workInfo)
+	err = db.Where("url=?", url).Create(&workInfo).Error
+	if err != nil {
+
+		return err
+	}
+
 	log.Info("save:", workInfo)
 	return
 }

@@ -24,7 +24,7 @@ func init() {
 		},
 	)
 	// 调用 Open 方法，传入驱动名和连接字符串
-	DataDB, err = gorm.Open(sqlite.Open("./test.db"), &gorm.Config{
+	DataDB, err = gorm.Open(sqlite.Open("./workinfo.db"), &gorm.Config{
 		Logger: slowLogger,
 	})
 	// 检查是否有错误

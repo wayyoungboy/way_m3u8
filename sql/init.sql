@@ -9,3 +9,7 @@ CREATE TABLE work_info (
                            create_time TIMESTAMP    DEFAULT CURRENT_TIMESTAMP,
                            update_time TIMESTAMP    DEFAULT CURRENT_TIMESTAMP
 ) ;
+
+-- 常用sql
+update work_info set state=1 where state=3;
+update work_info set save_dir="/data1/media/av/" where save_dir="../../m3u8";
