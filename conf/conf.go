@@ -53,7 +53,21 @@ func ConfInit() {
 	ConfMap["log_Nu"] = config.Log.LogNu
 	ConfMap["save_dir"] = config.Init.SavePath
 	ConfMap["work_max"] = config.Init.WorkMax
+	if !CheckWritePermission(config.Init.SavePath) {
+		panic("save_dir: " + config.Init.SavePath + "can not write")
+	}
 	// 打印配置项的值
 	confjson, _ := json.Marshal(ConfMap)
 	fmt.Println("conf:", string(confjson))
+}
+
+// 检查文件夹是否可写
+func CheckWritePermission(dirPath string) bool {
+	tmpFile, err := os.CreateTemp(dirPath, "test*")
+	if err != nil {
+		return false
+	}
+	defer os.Remove(tmpFile.Name()) // 确保临时文件被删除
+	defer tmpFile.Close()
+	return true
 }
