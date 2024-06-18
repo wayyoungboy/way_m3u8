@@ -45,5 +45,6 @@ func run() {
 	r.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{})
 	})
+	fmt.Println("open http://127.0.0.1:2045/static/ ")
 	r.Run(":" + fmt.Sprint(conf.ConfMap["Init.Port"])) // 监听2045端口
 }
