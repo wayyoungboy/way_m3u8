@@ -1,7 +1,7 @@
 init:
   port: 2045
   name: "default"
-  save_dir: "../../m3u8"
+  save_dir: "./video"
   work_max: 8
 log:
   path: "./log"
